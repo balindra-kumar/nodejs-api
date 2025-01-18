@@ -1,0 +1,137 @@
+
+const express = require('express');
+const mysql = require('mysql'); // Use promise-based MySQL library
+const cors = require("cors");
+
+// if you are using formdata starts
+const multer = require("multer");
+const upload = multer();
+// formdata closed here
+
+const app = express();
+const port = 5000;
+
+app.use(cors());
+
+
+// Create a MySQL connection pool
+const dbConfig = {
+  host: 'localhost',
+  user: 'root',
+  password: '',
+  database: 'nodejs', // Change to your database name
+ 
+};
+
+
+const connection = mysql.createConnection(dbConfig);
+
+connection.connect((error)=>{
+  if(error){
+    console.log("connection is failed")
+  }else{
+    console.log("connection is succesfuuly");
+  }
+})
+
+//Middleware to parse JSON  in the body request
+app.use(express.json());
+
+// POST method API in MySQL Node.js
+app.post('/student',upload.none(), (req, res) => {
+  console.log(req);
+  const { name, age, city } = req.body;
+  console.log(res);
+  const sql = `INSERT INTO student (name, age, city) VALUES (?,?,?)`;
+  const values = [name, age, city || null]; // Using null if city is not provided
+
+  connection.query(sql, values, (err, result) => {
+    if (err) {
+      console.error(err);
+      res.status(500).send('Internal Server Error');
+    } else {
+      res.json({ id: result.insertId, name, age, city });
+    }
+  });
+});
+
+
+//get method api
+app.get("/student",(req,res)=>{
+  const sql = "select * from student order by 1 desc";
+  connection.query(sql,(error,result)=>{
+    if(error){
+      console.log("something went wrong")
+    }else{
+      res.json(result)
+    }
+  });
+});
+
+
+//Delete API Post
+
+app.delete('/student/:id', (req, res) => {
+  const studentId = req.params.id;
+  const sql = 'DELETE FROM student WHERE id = ?';
+
+  connection.query(sql, [studentId], (err, result) => {
+    if (err) {
+      console.error('Error deleting student:', err);
+      res.status(500).json({ error: 'Internal Server Error' });
+    } else {
+      if (result.affectedRows > 0) {
+        res.json({ message: 'Student deleted successfully' });
+      } else {
+        res.status(404).json({ error: 'Student not found' });
+      }
+    }
+  });
+});
+
+
+//Single Post Read Api
+
+app.get('/student/:id',upload.none(),(req,res)=>{
+  const postId = req.params.id;
+  const sql = 'select * from student where id=?';
+  connection.query(sql,[postId],(error,result)=>{
+    if(error){
+      res.status(500).json({error:'Internal Server Error'})
+    }else {
+      if (result.length > 0) {
+        // Post found
+        res.json(result[0]);
+      } else {
+        // Post not found
+        res.status(404).send('Post not found');
+      }
+    }
+    
+  })
+})
+
+app.put('/student/:id',(req,res)=>{
+  let singlePostId = req.params.id;
+  let singlePostBody = req.body;
+
+  let sql ='UPDATE student SET ? where id=?';
+  connection.query(sql,[singlePostBody,singlePostId],(error,result)=>{
+    if(error){
+      res.status(500).json({error:'Internal server error'})
+    }else{
+      if(result.affectedRows>0){
+        res.json({message:'Your Post is successfully updated'})
+      }else{
+        res.status(400).json({message:'Sorry post is not updated'})
+      }
+    }
+  })
+
+})
+
+// Start the server
+app.listen(port, () => {
+  console.log(`Server is running on http://localhost:${port}`);
+});
+

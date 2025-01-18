@@ -1,0 +1,21 @@
+.nvm folder require node js install
+.bashrc file requred
+
+NVM install latest = nvm install 18.16.1
+
+nvm install --lts
+
+node: /lib64/libm.so.6: version ` GLIBC_2.27' not found (required by node)
+
+
+
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads                                                                                                  nvm bash_completion
+
+
+
+cd ~
+wget https://nodejs.org/dist/latest/node-v10.15.0-linux-arm64.tar.gz
+
+echo $NVM_DIR /home/username/.nvm
